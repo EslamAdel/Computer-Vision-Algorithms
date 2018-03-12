@@ -30,16 +30,16 @@ def houghLine(image):
     
     
 if __name__ == '__main__':
-    image = plt.imread('images/Lines.jpg')
-    channel = image[...,2]
-    channel = imresize(channel,(200,250))
-    edgeImage = feature.canny(channel)
+    image = np.zeros((50,50))
+    image[25, 25] = 1
+    #image[10, 10] = 1
+   #image[10:30, 10:30] = np.eye(20)
     
-    accumulator, thetas, rhos = houghLine(edgeImage)
-    plt.figure('Original Image', figsize=(20,20))
-    plt.imshow(edgeImage)
+    accumulator, thetas, rhos = houghLine(image)
+    plt.figure('Original Image')
+    plt.imshow(image)
     plt.set_cmap('gray')
-    plt.figure('Hough Space', figsize=(20,20) )
+    plt.figure('Hough Space')
     plt.imshow(accumulator)
     plt.set_cmap('gray')
     plt.show()
