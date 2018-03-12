@@ -1,7 +1,8 @@
-import scipy
+from scipy.misc import imresize
 import numpy as np
 import matplotlib.pyplot as plt
-
+from skimage import feature
+ 
 def houghLine(image):
     # Theta in range from -90 to 90 degrees
     thetas = np.deg2rad(np.arange(-90, 90))
@@ -29,13 +30,16 @@ def houghLine(image):
     
     
 if __name__ == '__main__':
-    image = np.zeros((50,50))
-    image[10:40, 10:40] = np.eye(30)
-    accumulator, thetas, rhos = houghLine(image)
-    plt.figure('Original Image')
-    plt.imshow(image)
+    image = plt.imread('images/Lines.jpg')
+    channel = image[...,2]
+    channel = imresize(channel,(200,250))
+    edgeImage = feature.canny(channel)
+    
+    accumulator, thetas, rhos = houghLine(edgeImage)
+    plt.figure('Original Image', figsize=(20,20))
+    plt.imshow(edgeImage)
     plt.set_cmap('gray')
-    plt.figure('Hough Space')
+    plt.figure('Hough Space', figsize=(20,20) )
     plt.imshow(accumulator)
     plt.set_cmap('gray')
     plt.show()
