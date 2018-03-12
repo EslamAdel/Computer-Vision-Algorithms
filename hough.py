@@ -24,7 +24,7 @@ def houghLine(image):
                  for k in range(len(thetas)):
                      r = i*np.cos(thetas[k]) + j * np.sin(thetas[k])
                      accumulator[r + Maxdist,k] += 1
-    return accumulator, rs, thetas
+    return accumulator, thetas, rs
     
     
     
@@ -34,8 +34,15 @@ if __name__ == '__main__':
     accumulator, thetas, rhos = houghLine(image)
     plt.figure('Original Image')
     plt.imshow(image)
+    plt.set_cmap('gray')
     plt.figure('Hough Space')
     plt.imshow(accumulator)
     plt.set_cmap('gray')
     plt.show()
+    idx = np.argmax(accumulator)
+    rho = rhos[int(idx / accumulator.shape[1])]
+    theta = thetas[int(idx % accumulator.shape[1])]
+    print("rho={0:.2f}, theta={1:.0f}".format(rho, np.rad2deg(theta)))
+    
+    
     
