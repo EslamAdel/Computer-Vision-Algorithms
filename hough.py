@@ -30,17 +30,20 @@ def houghLine(image):
 
 def detectLines(image,accumulator, threshold, rohs, thetas):
     maxVal = np.max(accumulator)
-    sortedAcc = np.argsort(accumulator)
+    sortedAcc = np.argsort(accumulator, axis=None)
     lineIdxs = []
-    for i in sortedAcc:
-        if accumulator(i) > threshold*maxVal: 
+    for i in reversed(sortedAcc):
+        if accumulator[int(i/accumulator.shape[1]),int(i%accumulator.shape[1])] >= threshold*maxVal: 
             lineIdxs.append(i)
         else:
             break
-        
+    selectedRos = []
+    selectedThetas = []
     for idx in lineIdxs:
         rho = rhos[int(idx / accumulator.shape[1])]
+        selectedRos.append(rho)
         theta = thetas[int(idx % accumulator.shape[1])]
+        selectedThetas.append(theta)
         plotLine(image, rho, theta)
         
 def plotLine(image, rho, theta):
@@ -66,11 +69,12 @@ if __name__ == '__main__':
     plt.imshow(accumulator)
     plt.set_cmap('gray')
     plt.show()
-    idx = np.argmax(accumulator)
-    rho = rhos[int(idx / accumulator.shape[1])]
-    theta = thetas[int(idx % accumulator.shape[1])]
-    plotLine(image, rho, theta)
-    print("rho={0:.2f}, theta={1:.0f}".format(rho, np.rad2deg(theta)))
+    detectLines(image, accumulator, 1, rhos, thetas)
+#    idx = np.argmax(accumulator)
+#    rho = rhos[int(idx / accumulator.shape[1])]
+#    theta = thetas[int(idx % accumulator.shape[1])]
+#    plotLine(image, rho, theta)
+#    print("rho={0:.2f}, theta={1:.0f}".format(rho, np.rad2deg(theta)))
     
     
     
