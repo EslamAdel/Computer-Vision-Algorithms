@@ -44,24 +44,36 @@ def detectLines(image,accumulator, threshold, rohs, thetas):
         selectedRos.append(rho)
         theta = thetas[int(idx % accumulator.shape[1])]
         selectedThetas.append(theta)
-        plotLine(image, rho, theta)
+        #plotLine(image, rho, theta)
+    plotLine(image,selectedRos,selectedThetas)
         
-def plotLine(image, rho, theta):
-    Nx = image.shape[0]
+def plotLine(image, rhos, thetas):
+    Nx = image.shape[1]
     x = range(Nx)
-    y = -1*np.cos(theta) * x / np.sin(theta) + rho / np.sin(theta)
     fig, ax = plt.subplots()
+    #plt.xlim(0, image.shape[0])
+    #plt.ylim(0,image.shape[1])
     ax.imshow(image)
-    ax.plot(x, y, '-', linewidth=5, color='green')
+    for i in range(len(rhos)):
+        rho = rhos[i]
+        theta = thetas[i]
+        y = -1*np.cos(theta) * x / np.sin(theta) + rho / np.sin(theta)
+        ax.plot(x, y, '-', linewidth=1, color='green')
+    plt.show()
     
     
 if __name__ == '__main__':
-    image = np.zeros((50,50))
+    image = plt.imread('images/Lines.jpg')
+    channel = image[...,2]
+    channel = imresize(channel,(200,250))
+    edgeImage = feature.canny(channel)
+
+    #image = np.zeros((50,50))
     #image[25, 25] = 1
     #image[10, 10] = 1
-    image[10:30, 10:30] = np.eye(20)
+    #image[10:30, 10:30] = np.eye(20)
     
-    accumulator, thetas, rhos = houghLine(image)
+    accumulator, thetas, rhos = houghLine(edgeImage)
     plt.figure('Original Image')
     plt.imshow(image)
     plt.set_cmap('gray')
@@ -69,7 +81,7 @@ if __name__ == '__main__':
     plt.imshow(accumulator)
     plt.set_cmap('gray')
     plt.show()
-    detectLines(image, accumulator, 1, rhos, thetas)
+    detectLines(channel, accumulator, 0.8, rhos, thetas)
 #    idx = np.argmax(accumulator)
 #    rho = rhos[int(idx / accumulator.shape[1])]
 #    theta = thetas[int(idx % accumulator.shape[1])]
