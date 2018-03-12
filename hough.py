@@ -12,7 +12,7 @@ def houghLine(image):
     hight = image.shape[1]
     
     #Max diatance is diagonal one 
-    Maxdist = np.round(np.sqrt(width**2 + hight ** 2))
+    Maxdist = int(np.round(np.sqrt(width**2 + hight ** 2)))
     
     #Range of radius
     rs = np.linspace(-Maxdist, Maxdist, 2*Maxdist)
@@ -24,16 +24,39 @@ def houghLine(image):
              if image[i,j] > 0:
                  for k in range(len(thetas)):
                      r = i*np.cos(thetas[k]) + j * np.sin(thetas[k])
-                     accumulator[r + Maxdist,k] += 1
+                     accumulator[int(r) + Maxdist,k] += 1
     return accumulator, thetas, rs
-    
+
+
+def detectLines(image,accumulator, threshold, rohs, thetas):
+    maxVal = np.max(accumulator)
+    sortedAcc = np.argsort(accumulator)
+    lineIdxs = []
+    for i in sortedAcc:
+        if accumulator(i) > threshold*maxVal: 
+            lineIdxs.append(i)
+        else:
+            break
+        
+    for idx in lineIdxs:
+        rho = rhos[int(idx / accumulator.shape[1])]
+        theta = thetas[int(idx % accumulator.shape[1])]
+        plotLine(image, rho, theta)
+        
+def plotLine(image, rho, theta):
+    Nx = image.shape[0]
+    x = range(Nx)
+    y = -1*np.cos(theta) * x / np.sin(theta) + rho / np.sin(theta)
+    fig, ax = plt.subplots()
+    ax.imshow(image)
+    ax.plot(x, y, '-', linewidth=5, color='green')
     
     
 if __name__ == '__main__':
     image = np.zeros((50,50))
-    image[25, 25] = 1
+    #image[25, 25] = 1
     #image[10, 10] = 1
-   #image[10:30, 10:30] = np.eye(20)
+    image[10:30, 10:30] = np.eye(20)
     
     accumulator, thetas, rhos = houghLine(image)
     plt.figure('Original Image')
@@ -46,6 +69,7 @@ if __name__ == '__main__':
     idx = np.argmax(accumulator)
     rho = rhos[int(idx / accumulator.shape[1])]
     theta = thetas[int(idx % accumulator.shape[1])]
+    plotLine(image, rho, theta)
     print("rho={0:.2f}, theta={1:.0f}".format(rho, np.rad2deg(theta)))
     
     
