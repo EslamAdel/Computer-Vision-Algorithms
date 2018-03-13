@@ -4,10 +4,17 @@ import matplotlib.pyplot as plt
 from skimage import feature
  
 def houghLine(image):
+    ''' Basic hough line transform that builds the accumulator array
+    Input : image : edge image (canny)
+    Output : accumulator : the accumulator of hough space
+             thetas : values of theta (-90 : 90)
+             rs : values of radius (-max distance : max distance)
+    '''
     # Theta in range from -90 to 90 degrees
     thetas = np.deg2rad(np.arange(-90, 90))
     
     #Get image dimensions
+    # y for rows and x for columns 
     Ny = image.shape[0]
     Nx = image.shape[1]
     
@@ -16,81 +23,126 @@ def houghLine(image):
     
     #Range of radius
     rs = np.linspace(-Maxdist, Maxdist, 2*Maxdist)
+    
+    # initialize accumulator array to zeros
     accumulator = np.zeros((2 * Maxdist, len(thetas)))
     
-    
+    # Now Start Accumulation
     for y in range(Ny):
         for x in range(Nx):
+            # Check if it is an edge pixel
+            #  NB: y -> rows , x -> columns
              if image[y,x] > 0:
+                 # Map edge pixel to hough space
                  for k in range(len(thetas)):
+                     # Calculate space parameter
                      r = x*np.cos(thetas[k]) + y * np.sin(thetas[k])
+                     # Update the accumulator
+                     # N.B: r has value -max to max
+                     # map r to its idx 0 : 2*max
                      accumulator[int(r) + Maxdist,k] += 1
+    
     return accumulator, thetas, rs
 
 
 def detectLines(image,accumulator, threshold, rohs, thetas):
-    Nx = image.shape[1]
-    Ny = image.shape[0]
-    maxVal = np.max(accumulator)
-    sortedAcc = np.argsort(accumulator, axis=None)
-    lineIdxs = []
-    #Maxdist = int(np.round(np.sqrt(Nx**2 + Ny ** 2)))
-    for i in reversed(sortedAcc):
-        if accumulator[int(i/accumulator.shape[1]),int(i%accumulator.shape[1])] >= threshold*maxVal: 
-            lineIdxs.append(i)
-        else:
-            break
-    selectedRos = []
-    selectedThetas = []
-    for idx in lineIdxs:
-        rho = rhos[int(idx / accumulator.shape[1])] 
-        selectedRos.append(rho)
-        theta = thetas[int(idx % accumulator.shape[1])] 
-        selectedThetas.append(theta)
-        #plotLine(image, rho, theta)
-    plotLine(image,selectedRos,selectedThetas)
-        
-def plotLine(image, rhos, thetas):
-    Nx = image.shape[1]
-    Ny = image.shape[0]
-    x = range(Nx)
-    fig, ax = plt.subplots()
-    plt.xlim(0,Nx)
-    plt.ylim(Ny,0)
-    ax.imshow(image)
-    for i in range(len(rhos)):
-        rho = rhos[i]
-        theta = thetas[i]
-        y = -1*np.cos(theta) * x / np.sin(theta) + rho / np.sin(theta)
-        ax.plot(x, y, '-', linewidth=1, color='green')
-    plt.show()
+    ''' Extract lines with accumulator value > certain threshold
+        Input : image : Original image
+                accumulator array
+                threshold : fraction of max value in accumulator
+                rhos : radii array ( -dmax : dmax)
+                thetas : theta array
+                
+    '''
     
+    # Get maximum value in accumulator 
+    maxVal = np.max(accumulator)
+    
+    # Now Sort ( in ascending order) accumulator to select top points
+    # axis=None sort all matrix to 1D vector
+    sortedAcc = np.argsort(accumulator, axis=None)
+    
+    # Initialzie lists of selected lines
+    detectedLines = []
+    
+    for i in reversed(sortedAcc):
+        # Get 2D idxs from 1D idx
+        idr = int(i/accumulator.shape[1])
+        idt = int(i%accumulator.shape[1])
+        
+        # Check current value relative to threshold value
+        if accumulator[idr, idt] >= threshold * maxVal: 
+            # Add line if value > threshold
+            r = rhos[idr] 
+            theta = thetas[idt]      
+            #Update our list
+            detectedLines.append((r,theta))     
+        else:
+            # No more points 
+            break
+    
+    # Now plot detected lines in image
+    plotLines(image, detectedLines)
+        
+def plotLines(image, lines):
+    ''' Plot detected lines by detecLines method superimposed on original image
+        input : image : original image
+                lines : list of lines(r,theta)
+    '''
+    # initialize x ( width of the image)
+    x = range(image.shape[1])
+    
+    # Figure
+    fig, ax = plt.subplots()
+    
+    # Set figure limits in x and y 
+    plt.xlim(0,image.shape[1])
+    plt.ylim(image.shape[0],0)
+    
+    # Show image
+    ax.imshow(image)
+    
+    # Plot lines overloaded on the image
+    for line in lines:
+        
+        rho = line[0]
+        theta = line[1]
+        # Reverse map from hough space to image space
+        y = -1 * np.cos(theta) * x / np.sin(theta) + rho / np.sin(theta)
+        
+        # Plot Line
+        # TODO detect initial and final points of the line
+        ax.plot(x, y, '-', linewidth=1, color='red')
+
     
 if __name__ == '__main__':
+    # Load the image
     image = plt.imread('images/Regular-Shapes.jpg')
-    channel = image[...,2]
-    #    
-    edgeImage = feature.canny(channel)
-
-    #image = np.zeros((50,50))
-    #image[25, 25] = 1
-    #image[10, 10] = 1
-    #image[10:30, 10:30] = np.eye(20)
     
-    accumulator, thetas, rhos = houghLine(edgeImage)
+    # Edge detection (canny)
+    edgeImage = feature.canny(image[...,0])
+    
+    # Show original image
     plt.figure('Original Image')
+    plt.imshow(image)
+    plt.set_cmap('gray')
+    
+    # Show edge image
+    plt.figure('Edge Image')
     plt.imshow(edgeImage)
     plt.set_cmap('gray')
+    
+    # build accumulator    
+    accumulator, thetas, rhos = houghLine(edgeImage)
+   
+    # Visualize hough space
     plt.figure('Hough Space')
     plt.imshow(accumulator)
     plt.set_cmap('gray')
+    
+    # Detect and superimpose lines on original image
+    detectLines(image, accumulator, 0.8, rhos, thetas)
     plt.show()
-    detectLines(channel, accumulator, 0.8, rhos, thetas)
-#    idx = np.argmax(accumulator)
-#    rho = rhos[int(idx / accumulator.shape[1])]
-#    theta = thetas[int(idx % accumulator.shape[1])]
-#    plotLine(image, rho, theta)
-#    print("rho={0:.2f}, theta={1:.0f}".format(rho, np.rad2deg(theta)))
     
     
     
