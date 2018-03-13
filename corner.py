@@ -56,8 +56,9 @@ def plot_harris_points(image,filtered_coords):
     plt.axis('off')
     plt.show()
 
-im1 = plt.imread('images/Lines.jpg')
-im = im1[...,2]
-harrisim = compute_harris_response(im)
-filtered_coords = get_harris_points(harrisim,6,0.2)
-plot_harris_points(im, filtered_coords)
+if __name__ == '__main__':
+    im1 = plt.imread('images/Lines.jpg')
+    im = im1[...,2]
+    harrisim = compute_harris_response(im)
+    filtered_coords = get_harris_points(harrisim,6,0.2)
+    plot_harris_points(im, filtered_coords)

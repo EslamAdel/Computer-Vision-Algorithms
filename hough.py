@@ -1,8 +1,9 @@
-from scipy.misc import imresize
 import numpy as np
 import matplotlib.pyplot as plt
 from skimage import feature
- 
+import matplotlib.colors as color
+
+
 def houghLine(image):
     ''' Basic hough line transform that builds the accumulator array
     Input : image : edge image (canny)
@@ -106,22 +107,25 @@ def plotLines(image, lines):
     for line in lines:
         
         rho = line[0]
-        theta = line[1]
-        # Reverse map from hough space to image space
-        y = -1 * np.cos(theta) * x / np.sin(theta) + rho / np.sin(theta)
-        
-        # Plot Line
-        # TODO detect initial and final points of the line
-        ax.plot(x, y, '-', linewidth=1, color='red')
+        theta = np.round(np.rad2deg(line[1]))
+        if theta != 0:
+            # Reverse map from hough space to image space
+            y = np.round(-1 * np.cos(np.deg2rad(theta)) * x / np.sin(np.deg2rad(theta)) + rho / np.sin(np.deg2rad(theta)))            
+            # Plot Line
+            # TODO detect initial and final points of the line
+            ax.plot(x, y, '-', linewidth=2, color='red')
+        else:
+            plt.axvline(rho,linewidth=2, color='red')
 
     
 if __name__ == '__main__':
     # Load the image
-    image = plt.imread('images/Regular-Shapes.jpg')
-    
+    image = plt.imread('images/Lines.jpg')
+    hsvImage = color.rgb_to_hsv(image)
+    ValImage = hsvImage[..., 2]
+    #image = misc.imresize(image,(300,400))
     # Edge detection (canny)
-    edgeImage = feature.canny(image[...,0])
-    
+    edgeImage = feature.canny( ValImage,sigma=1.4, low_threshold=40, high_threshold=150)    
     # Show original image
     plt.figure('Original Image')
     plt.imshow(image)
@@ -141,7 +145,7 @@ if __name__ == '__main__':
     plt.set_cmap('gray')
     
     # Detect and superimpose lines on original image
-    detectLines(image, accumulator, 0.8, rhos, thetas)
+    detectLines(image, accumulator, 0.27, rhos, thetas)
     plt.show()
     
     
