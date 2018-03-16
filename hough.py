@@ -29,8 +29,8 @@ def houghLine(image):
     
     
 if __name__ == '__main__':
-    image = np.zeros((50,50))
-    image[10:40, 10:40] = np.eye(30)
+    image = np.zeros((150,150))
+    image[75,75] = 1 
     accumulator, thetas, rhos = houghLine(image)
     plt.figure('Original Image')
     plt.imshow(image)
