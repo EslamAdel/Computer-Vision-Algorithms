@@ -30,13 +30,13 @@ def houghLine(image):
     
 if __name__ == '__main__':
     image = np.zeros((150,150))
-    image[75,75] = 1 
+    image[:,:] = np.eye(150)
     accumulator, thetas, rhos = houghLine(image)
     plt.figure('Original Image')
     plt.imshow(image)
     plt.set_cmap('gray')
     plt.figure('Hough Space')
-    plt.imshow(accumulator)
+    plt.imshow(np.log10(accumulator+1))
     plt.set_cmap('gray')
     plt.show()
     idx = np.argmax(accumulator)
