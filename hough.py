@@ -40,9 +40,9 @@ if __name__ == '__main__':
     plt.set_cmap('gray')
     plt.show()
     idx = np.argmax(accumulator)
-    rho = rhos[int(idx / accumulator.shape[1])]
+    rho = int(rhos[int(idx / accumulator.shape[1])])
     theta = thetas[int(idx % accumulator.shape[1])]
-    print("rho={0:.2f}, theta={1:.0f}".format(rho, np.rad2deg(theta)))
+    print("rho={0:.0f}, theta={1:.0f}".format(rho, np.rad2deg(theta)))
     
     
     
