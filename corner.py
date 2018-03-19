@@ -6,46 +6,67 @@ from scipy import signal
 
 
 
-def hessianMatrix(image):
+def harrisCorner(image):
     '''
-    Compute Hessina matrix of the image and visualize it 
+    Compute Harris corenr using hessian matrix of the image 
+    input : image 
+    output : Harris operator.
     
     '''
+    
+    # Sobel operator is an approximation of first order derivative
+    # x derivative
     sobelx = np.array([[-1, 0, 1],
                        [-2, 0, 2],
                        [-1, 0, 1]])
+    
+    #y derivative
     sobely = np.array([[-1, -2, -1],
                        [ 0,  0,  0],
                        [ 1,  2,  1]])
                      
-    # Get Ixx image
+    # Get Ixx 
+    # To get second derivative differentiate twice.
     Ixx = signal.convolve2d(signal.convolve2d(image, sobelx),sobelx)
-    # Iyy Image 
+    # Iyy  
     Iyy = signal.convolve2d(signal.convolve2d(image, sobely),sobely)
     # Ixy Image 
     Ixy = signal.convolve2d(signal.convolve2d(image, sobelx),sobely)
     
-#    plt.figure("Ixx")
-#    plt.imshow(Ixx)
-#    plt.set_cmap("gray")
-#    plt.figure("Iyy")
-#    plt.imshow(Iyy)
-#    plt.figure("Ixy")
-#    plt.imshow(Ixy)
-#    
-#    # Get Determinnate
+    #Hessian Matrix is [Ixx Ixy
+    #                    Ixy Iyy]
+    
+    # Lets show them 
+    plt.figure("Ixx")
+    plt.imshow(Ixx)
+    plt.set_cmap("gray")
+    plt.figure("Iyy")
+    plt.imshow(Iyy)
+    plt.figure("Ixy")
+    plt.imshow(Ixy)
+    
+    # Get Determinnate and trace 
     det = Ixx*Iyy - Ixy**2
     trace = Ixx + Iyy
+    
+    # Harris is det(H) - a * trace(H) let a = 0.2 
     H = det - 0.2 * trace
-#    plt.figure("Harris Operator")
-#    plt.imshow(H)
-#    plt.show()
+    
+    # lets show Harris matrix
+    plt.figure("Harris Operator")
+    plt.imshow(np.abs(H))
+    plt.show()
+    
+    #Return harris matrix
     return H
     
     
-""" Compute the Harris corner detector response function
-for each pixel in a graylevel image. """
 def compute_harris_response(im,sigma=3):
+    '''
+    Corner Detector by Harris and Stephens, instead of getting second order 
+    derivative. Blure the image using gaussian and then get the first order 
+    derivative 
+    '''
     # derivatives
     imx = np.zeros(im.shape)
     filters.gaussian_filter(im, (sigma,sigma), (0,1), imx)
@@ -61,34 +82,23 @@ def compute_harris_response(im,sigma=3):
     return Wdet / Wtr
     
 
-def get_harris_points(harrisim,threshold=0.1):
-    """ Return corners from a Harris response image
-    min_dist is the minimum number of pixels separating
-    corners and image boundary. """
-    # find top corner candidates above a threshold
-    corner_threshold = harrisim.max() * threshold
-    harrisim_t = (harrisim > corner_threshold) * 1
-    # get coordinates of candidates
-    coords = np.array(harrisim_t.nonzero()).T
-#    # ...and their values
-#    candidate_values = [harrisim[c[0],c[1]] for c in coords]
-#    # sort candidates
-#    index = np.argsort(candidate_values)
-#    # store allowed point locations in array
-#    allowed_locations = np.zeros(harrisim.shape)
-#    allowed_locations[min_dist:-min_dist,min_dist:-min_dist] = 1
-#    # select the best points taking min_distance into account
-#    filtered_coords = []
-#    for i in index:
-#        if allowed_locations[coords[i,0],coords[i,1]] == 1:
-#            filtered_coords.append(coords[i])
-#            allowed_locations[(coords[i,0]-min_dist):(coords[i,0]+min_dist),
-#                              (coords[i,1]-min_dist):(coords[i,1]+min_dist)] = 0
+def getHarrisPoints(harrisImage,threshold=0.1):
+    ''' Extract corners > threshold where threshold is a fraction of maximum 
+    corner value.
+    inputs: harrisImage , threshold 
+    Output : selected poits coordinates 
+    '''
+    #Find corners >  threshold
+    selectedCorners = (harrisImage > threshold * harrisImage.max()) * 1
+    
+    # get coordinates of selected corners
+    coords = np.array(selectedCorners.nonzero()).T
+    
     return coords
 
 
 
-def plot_harris_points(image,filtered_coords):
+def plotHarrisPoints(image,filtered_coords):
     """ Plots corners found in image. """
     plt.figure()
     plt.set_cmap('gray')
@@ -97,10 +107,11 @@ def plot_harris_points(image,filtered_coords):
     plt.axis('off')
     plt.show()
 
-im = plt.imread('images/squares.jpg')
-hsv_image = col.rgb_to_hsv(im)
 
-H = hessianMatrix(hsv_image[...,2])
-#harrisim = compute_harris_response(im)
-filtered_coords = get_harris_points(H,0.4)
-plot_harris_points(im, filtered_coords)
+if __name__ == '__main__':
+    image = plt.imread('images/squares.jpg')
+    hsv_image = col.rgb_to_hsv(image)
+    vIm = hsv_image[...,2]
+    H = harrisCorner(vIm)
+    filtered_coords = getHarrisPoints(H, 0.4)
+    plotHarrisPoints(image, filtered_coords)
