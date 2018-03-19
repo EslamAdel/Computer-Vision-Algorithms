@@ -29,19 +29,20 @@ def fastDetect(image, t):
             if abs(p-p13) > t:
                 count +=1 
             
-            if count >= 3: 
+            if count >= 2: 
                 cornerImage[i,j] = 1
+
     return cornerImage
 
 def nonMaxSupp(cornerImage):
     
     corners = np.array(np.nonzero(cornerImage)).T
     for p in corners:
-        if not checkNeighbors(cornerImage,p):
+        if not isMax(cornerImage,p):
             cornerImage[p[0], p[1]] = 0
     return cornerImage
 
-def checkNeighbors(image,p):
+def isMax(image,p):
     otherCorners = np.array(np.nonzero(image[p[0]-2:p[0]+5,p[1]-2:p[1]+5])).T
     wp = weighFunction(image,p)
     for c in otherCorners:
@@ -49,7 +50,7 @@ def checkNeighbors(image,p):
         c = c + p - 1
         if c[0] != p[0] and c[1] != p[1]:
             wc = weighFunction(image,c)
-            if wc > wp :
+            if wc >= wp :
                 return 0
     return 1
 
@@ -57,16 +58,28 @@ def checkNeighbors(image,p):
 def weighFunction(image,p):
     i = p[0]
     j = p[1]
-    subIm = np.array([image[i+3,j-1:j+2], image[i-3,j-1:j+2], image[i-1:i+2,j+3], image[i-1:i+2,j-3], image[i+2,j+2],image[i-2,j+2],image[i-2,j-2],image[i+2,j-2]])
-    weight = np.sum(np.sum(np.abs(subIm - image[i,j])))
+    try:
+        subIm = np.array([image[i+3,j-1:j+2], image[i-3,j-1:j+2], image[i-1:i+2,j+3], image[i-1:i+2,j-3], image[i+2,j+2],image[i-2,j+2],image[i-2,j-2],image[i+2,j-2]])
+        weight = np.sum(np.sum(np.abs(subIm - image[i,j])))
+    except:
+      weight = abs(image[i,j])  
     return weight
-        
 
-image = plt.imread("images/Lines.jpg")
+def plot_corner_points(image,filtered_coords):
+    """ Plots corners found in image. """
+    plt.figure()
+    plt.set_cmap('gray')
+    plt.imshow(image)
+    plt.plot([p[1] for p in filtered_coords],[p[0] for p in filtered_coords],'+',color='red')
+    plt.axis('off')
+    plt.show()
+
+image = plt.imread("images/squares.jpg")
 hsvImage = color.rgb_to_hsv(image)
-corners = fastDetect(hsvImage[...,2],90)
+corners = fastDetect(hsvImage[...,2],150)
 corners = nonMaxSupp(corners)
-plt.figure("Corners")
-plt.imshow(corners)
-plt.set_cmap("gray")
-plt.show()
+cors = np.array(np.nonzero(corners)).T
+plot_corner_points(image, cors)
+#plt.imshow(corners)
+#plt.set_cmap("gray")
+#plt.show()
