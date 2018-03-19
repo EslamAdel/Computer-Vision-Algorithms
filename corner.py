@@ -11,9 +11,7 @@ def harrisCorner(image):
     Compute Harris corenr using hessian matrix of the image 
     input : image 
     output : Harris operator.
-    
     '''
-    
     # Sobel operator is an approximation of first order derivative
     # x derivative
     sobelx = np.array([[-1, 0, 1],
