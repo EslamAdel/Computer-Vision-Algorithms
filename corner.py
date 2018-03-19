@@ -79,7 +79,7 @@ def compute_harris_response(im,sigma=3):
     # determinant and trace
     Wdet = Wxx*Wyy - Wxy**2
     Wtr = Wxx + Wyy
-    return Wdet / Wtr
+    return Wdet - 0.2 * Wtr
     
 
 def getHarrisPoints(harrisImage,threshold=0.1):
@@ -109,9 +109,17 @@ def plotHarrisPoints(image,filtered_coords):
 
 
 if __name__ == '__main__':
+    #Load Image
     image = plt.imread('images/squares.jpg')
     hsv_image = col.rgb_to_hsv(image)
+    # Working on value channel
     vIm = hsv_image[...,2]
+    # Get harris using hessian matrix
     H = harrisCorner(vIm)
-    filtered_coords = getHarrisPoints(H, 0.4)
-    plotHarrisPoints(image, filtered_coords)
+    coords = getHarrisPoints(H, 0.4)
+    plotHarrisPoints(image, coords)
+    
+    #Get Harris using gaussian
+    Hg = compute_harris_response(vIm)
+    coord = getHarrisPoints(Hg, 0.96)
+    plotHarrisPoints(image, coord)
