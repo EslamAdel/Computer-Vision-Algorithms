@@ -1,7 +1,49 @@
 from scipy.ndimage import filters
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.colors as col
+from scipy import signal
+from scipy import ndimage
 
+
+
+def hessianMatrix(image):
+    '''
+    Compute Hessina matrix of the image and visualize it 
+    
+    '''
+    sobelx = np.array([[-1, 0, 1],
+                       [-2, 0, 2],
+                       [-1, 0, 1]])
+    sobely = np.array([[-1, -2, -1],
+                       [ 0,  0,  0],
+                       [ 1,  2,  1]])
+                     
+    # Get Ixx image
+    Ixx = signal.convolve2d(signal.convolve2d(image, sobelx),sobelx)
+    # Iyy Image 
+    Iyy = signal.convolve2d(signal.convolve2d(image, sobely),sobely)
+    # Ixy Image 
+    Ixy = signal.convolve2d(signal.convolve2d(image, sobelx),sobely)
+    
+    plt.figure("Ixx")
+    plt.imshow(Ixx)
+    plt.set_cmap("gray")
+    plt.figure("Iyy")
+    plt.imshow(Iyy)
+    plt.figure("Ixy")
+    plt.imshow(Ixy)
+    
+    # Get Determinnate
+    det = Ixx*Iyy - Ixy**2
+    trace = Ixx + Iyy
+    H = det - 0.2 * trace
+    plt.figure("Harris Operator")
+    plt.imshow(H)
+    plt.show()
+    
+    
+    
 """ Compute the Harris corner detector response function
 for each pixel in a graylevel image. """
 def compute_harris_response(im,sigma=3):
@@ -58,6 +100,7 @@ def plot_harris_points(image,filtered_coords):
 
 im1 = plt.imread('images/Lines.jpg')
 im = im1[...,2]
-harrisim = compute_harris_response(im)
-filtered_coords = get_harris_points(harrisim,6,0.2)
-plot_harris_points(im, filtered_coords)
+hessianMatrix(im)
+#harrisim = compute_harris_response(im)
+#filtered_coords = get_harris_points(harrisim,4,0.1)
+#plot_harris_points(im, filtered_coords)
