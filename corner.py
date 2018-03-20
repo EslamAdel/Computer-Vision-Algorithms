@@ -35,6 +35,8 @@ def harrisCorner(image):
     #                    Ixy Iyy]
     
     # Lets show them 
+    plt.figure("Original Image")
+    plt.imshow(image)
     plt.figure("Ixx")
     plt.imshow(Ixx)
     plt.set_cmap("gray")
@@ -118,6 +120,6 @@ if __name__ == '__main__':
     plotHarrisPoints(image, coords)
     
     #Get Harris using gaussian
-    Hg = compute_harris_response(vIm)
-    coord = getHarrisPoints(Hg, 0.96)
-    plotHarrisPoints(image, coord)
+#    Hg = compute_harris_response(vIm)
+#    coord = getHarrisPoints(Hg, 0.96)
+#    plotHarrisPoints(image, coord)
