@@ -17,27 +17,22 @@ def fastDetect(image, t):
             try:
                 #Point to test
                 p  = image[i,j]
-                # Get points 1, 5, 9, 13
-                p1 = image[i-3,j] 
-                p5 = image[i,j+3] 
-                p9 = image[i+3,j] 
-                p13 = image[i,j-3]
+                # Get points 1 to 16
+                points = [image[i+3,j-1:j+2], image[i-3,j-1:j+2],
+                                   image[i-1:i+2,j+3], image[i-1:i+2,j-3], 
+                                   image[i+2,j+2],image[i-2,j+2],
+                                   image[i-2,j-2],image[i+2,j-2]]
                 #Counter holds number of pixels > threshold
                 count = 0
-                # Calculate absolute difference 
-                if abs(p-p1) > t:
-                    count +=1
-                if abs(p-p5) > t:
-                    count +=1 
-                if abs(p-p9) > t:
-                    count +=1 
-                if abs(p-p13) > t:
-                    count +=1 
-                # Check number of pixels that have same  diff > threshold
-                # Original Fast stated that it must be >= 3 
-                # But for count >= 3 corners with 90 degree will not be detected
-                # So I made it >= 2
-                
+                for point in points:
+                    # Calculate absolute difference 
+                    if abs(p-point) > t:
+                        count +=1
+                        # Check number of pixels that have same  diff > threshold
+                        # Original Fast stated that it must be >= 3 
+                        # But for count >= 3 corners with 90 degree will not be detected
+                        # So I made it >= 2
+                    
                 if count >= 2: 
                     cornerImage[i,j] = 1
             except:
