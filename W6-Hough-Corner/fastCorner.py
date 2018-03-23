@@ -115,18 +115,18 @@ def plot_corner_points(image,filtered_coords):
     plt.figure()
     plt.set_cmap('gray')
     plt.imshow(image)
-    plt.plot([p[1] for p in filtered_coords],[p[0] for p in filtered_coords],'+',color='red')
+    plt.scatter([p[1] for p in filtered_coords],[p[0] for p in filtered_coords],marker='o',c='b',linewidths=0.75)
     plt.axis('off')
     plt.show()
 
 
 if __name__ == '__main__':
     #Load Image    
-    image = plt.imread("images/squares.jpg")
+    image = plt.imread("images/Lines.jpg")
     hsvImage = color.rgb_to_hsv(image)
     # Working on value channel
     # Detect corners using fast
-    corners = fastDetect(hsvImage[...,2],150)
+    corners = fastDetect(hsvImage[...,2],130)
     #Apply non-max suppression
     corners = nonMaxSupp(corners)
     #Plot corners

@@ -115,11 +115,11 @@ if __name__ == '__main__':
     # Working on value channel
     vIm = hsv_image[...,2]
     # Get harris using hessian matrix
-    H = harrisCorner(vIm)
-    coords = getHarrisPoints(H, 0.4)
-    plotHarrisPoints(image, coords)
-    
+#    H = harrisCorner(vIm)
+#    coords = getHarrisPoints(H, 0.1)
+#    plotHarrisPoints(image, coords)
+#    
     #Get Harris using gaussian
-#    Hg = compute_harris_response(vIm)
-#    coord = getHarrisPoints(Hg, 0.96)
-#    plotHarrisPoints(image, coord)
+    Hg = compute_harris_response(vIm)
+    coord = getHarrisPoints(Hg, 0.92)
+    plotHarrisPoints(image, coord)
