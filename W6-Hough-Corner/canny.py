@@ -70,7 +70,7 @@ def myCanny(image, tl, th):
                        [c[0]+2, c[1]-2],
                        [c[0]-2, c[1]+2]]
             for i in idx:
-                if G[i[0],i[1]] > G[c[0],c[1]]:
+                if G[i[0],i[1]] >= G[c[0],c[1]]:
                     G[c[0],c[1]] = 0
         except:
             pass
@@ -89,10 +89,10 @@ def myCanny(image, tl, th):
         if G[re[0],re[1]] != 255:
             try:
                 neighbors = remEdges[re[0]-1:re[0]+2, re[1]-1:re[2]+2].flatten()
-                if np.max(neighbors) == 255:
-                    G[re[0],re[1]] = 255
             except:
-                pass
+                neighbors = G[re[0], re[1]]
+            if np.max(neighbors) == 255:
+                G[re[0],re[1]] = 255
     
     return G
 
