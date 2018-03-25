@@ -123,15 +123,15 @@ def plot_corner_points(image,filtered_coords):
 
 if __name__ == '__main__':
     #Load Image    
-    image = plt.imread("images/Lines.jpg")
+    image = plt.imread("images/BW2.jpg")
     hsvImage = color.rgb_to_hsv(image)
     im = hsvImage[...,2]
     # Working on value channel
     # Detect corners using fast
 #    im = np.zeros((100,100))
 #    im[25:75,25:75] = 255
-    im1 = filters.gaussian_filter(im,1)
-    corners = fastDetect(im1,100)
+#    im1 = filters.gaussian_filter(im,1)
+    corners = fastDetect(im,75)
     #Apply non-max suppression
     scorners = nonMaxSupp(corners)
     #Plot corners

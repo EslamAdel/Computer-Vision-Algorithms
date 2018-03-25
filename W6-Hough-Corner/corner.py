@@ -110,13 +110,13 @@ def plotHarrisPoints(image,filtered_coords):
 
 if __name__ == '__main__':
     #Load Image
-    image = plt.imread('images/squares.jpg')
+    image = plt.imread('images/BW.jpg')
     hsv_image = col.rgb_to_hsv(image)
     # Working on value channel
     vIm = hsv_image[...,2]
     # Get harris using hessian matrix
     H = harrisCorner(vIm)
-    coords = getHarrisPoints(H, 0.4)
+    coords = getHarrisPoints(H, 0.1)
     plotHarrisPoints(image, coords)
     
     #Get Harris using gaussian
