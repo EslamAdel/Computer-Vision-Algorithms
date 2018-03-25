@@ -2,6 +2,7 @@ import numpy as np
 from scipy import signal
 from scipy.ndimage import filters
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 def myCanny(image, tl, th):
     '''Canny edge detection algorithm 
@@ -35,63 +36,79 @@ def myCanny(image, tl, th):
     
     #3. None maxima suppression 
     # Getting gradient direction at first
-    theta = np.arctan(Gy/Gy)
+    theta = np.arctan2(Gy,Gx)
     # Digitalize value to be 0, 45, 90, 135
-    idxs = [i for i in np.array(np.argsort(theta)).T if theta[i] < 0]
-    theta[idxs] += np.pi
-    bins = np.array([0, np.pi/8, 3*np.pi/8 , 5*np.pi/8, 7*np.pi/8, pi])
+    idxs = np.array(theta.nonzero()).T
+    for idx in idxs: 
+        if theta[idx[0], idx[1]] < 0:
+            theta[idx[0], idx[1]] += np.pi 
+    bins = np.array([0, np.pi/8, 3*np.pi/8 , 5*np.pi/8, 7*np.pi/8, np.pi])
     dirs = np.digitize(theta, bins)%4
     # Apply none-max suppression
     edgeCoords = np.array(G.nonzero()).T
     for c in edgeCoords:
-        gradDir = dirs[c]
-        if gradDir == 0:
-            idx = [[c[0]+1, c[1]],
-                   [c[0]-1,  c[1]],
-                   [c[0]+2, c[1]],
-                   [c[0]-2, c[1]]]
-        elif gradDir == 1:
-            idx = [[c[0]+1, c[1]+1],
-                   [c[0]-1,  c[1]-1],
-                   [c[0]+2, c[1]+2],
-                   [c[0]-2, c[1]]-2]
-        elif gradDir == 2:
-            idx = [[c[0], c[1]+1],
-                   [c[0],  c[1]-1],
-                   [c[0], c[1]+2],
-                   [c[0], c[1]-2]]
-        elif gradDir == 3 :
-            idx = [[c[0]+1, c[1]-1],
-                   [c[0]-1,  c[1]+1],
-                   [c[0]+2, c[1]-2],
-                   [c[0]-2, c[1]+2]]
-        for i in idx:
-            if G[i] > G[c]:
-                G[c] = 0
+        gradDir = dirs[c[0], c[1]]
+        try:
+            if gradDir == 0:
+                idx = [[c[0]+1, c[1]],
+                       [c[0]-1,  c[1]],
+                       [c[0]+2, c[1]],
+                       [c[0]-2, c[1]]]
+            elif gradDir == 1:
+                idx = [[c[0]+1, c[1]+1],
+                       [c[0]-1,  c[1]-1],
+                       [c[0]+2, c[1]+2],
+                       [c[0]-2, c[1]-2]]
+            elif gradDir == 2:
+                idx = [[c[0], c[1]+1],
+                       [c[0],  c[1]-1],
+                       [c[0], c[1]+2],
+                       [c[0], c[1]-2]]
+            elif gradDir == 3 :
+                idx = [[c[0]+1, c[1]-1],
+                       [c[0]-1,  c[1]+1],
+                       [c[0]+2, c[1]-2],
+                       [c[0]-2, c[1]+2]]
+            for i in idx:
+                if G[i[0],i[1]] > G[c[0],c[1]]:
+                    G[c[0],c[1]] = 0
+        except:
+            pass
                 
     #4. Double Thresholding 
     remainingEdges = np.array(G.nonzero()).T
     for e in remainingEdges:
-        if G[e] < tl:
-            G[e] = 0
-        elif G[e] > th:
-            G[e] = 255
+        if G[e[0], e[1]] < tl:
+            G[e[0], e[1]] = 0
+        elif G[e[0], e[1]] > th:
+            G[e[0], e[1]] = 255
     
     #5. Edge tracking by hestrisis
     remEdges = np.array(G.nonzero()).T
     for re in remEdges:
-        if re != 255:
-            neighbors = remEdges[re[0]-1:re[0]+2, re[1]-1:re[2]+2].flatten()
-            if np.max(neighbors) == 255:
-                G[re] = 255
+        if G[re[0],re[1]] != 255:
+            try:
+                neighbors = remEdges[re[0]-1:re[0]+2, re[1]-1:re[2]+2].flatten()
+                if np.max(neighbors) == 255:
+                    G[re[0],re[1]] = 255
+            except:
+                pass
     
     return G
 
 
 
 if __name__=='__main__':
-    image = np.zeros((200,200))
-    image[25:75,25:75] = 255
+#    image = np.zeros((200,200))
+#    image[25:175,25:175] = 255
+    image = plt.imread("images/Lines.jpg")
+    hsvImage = colors.rgb_to_hsv(image)
+    valIm = hsvImage[...,2]
+    cannyIm = myCanny(valIm, 50, 100)
+    plt.figure()
+    plt.imshow(cannyIm)
+    plt.set_cmap("gray")
+    plt.show()
             
     
         
