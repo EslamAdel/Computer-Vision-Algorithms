@@ -1,6 +1,8 @@
 import numpy as np 
 import matplotlib.pyplot as plt
 import matplotlib.colors as color
+from scipy import signal
+from scipy.ndimage import filters
 
 def fastDetect(image, t):
     '''
@@ -18,23 +20,27 @@ def fastDetect(image, t):
                 #Point to test
                 p  = image[i,j]
                 # Get points 1 to 16
+                
                 points = [image[i+3,j-1:j+2], image[i-3,j-1:j+2],
                                    image[i-1:i+2,j+3], image[i-1:i+2,j-3], 
                                    image[i+2,j+2],image[i-2,j+2],
                                    image[i-2,j-2],image[i+2,j-2]]
+#                points = [image[i+3,j], image[i-3,j], image[i,j+3], image[i,j - 3]]
                 #Counter holds number of pixels > threshold
                 count = 0
-                for point in points:
-                    # Calculate absolute difference 
-                    if abs(p-point) > t:
-                        count +=1
-                        # Check number of pixels that have same  diff > threshold
-                        # Original Fast stated that it must be >= 3 
-                        # But for count >= 3 corners with 90 degree will not be detected
-                        # So I made it >= 2
-                    
-                if count >= 2: 
-                    cornerImage[i,j] = 1
+                for a in points:
+                    for point in a:
+                        # Calculate absolute difference 
+                        if abs(p-point) > t:
+                            count +=1
+#                        else:
+#                            count = 0
+                    # Check number of pixels that have same  diff > threshold
+                    # Original Fast stated that it must be >= 3 
+                    # But for count >= 3 corners with 90 degree will not be detected
+                    # So I made it >= 2
+                    if count >= 5: 
+                        cornerImage[i,j] = 1
             except:
                 pass
     
@@ -68,7 +74,7 @@ def isMax(image,p):
     input : image , p is corner point to be tested
     '''
     #Select nonzero neighbors 
-    otherCorners = np.array(np.nonzero(image[p[0]-2:p[0]+5,p[1]-2:p[1]+5])).T
+    otherCorners = np.array(np.nonzero(image[p[0]-3:p[0]+4,p[1]-3:p[1]+4])).T
     # Weight for the corner point
     wp = weighFunction(image,p)
     for c in otherCorners:
@@ -117,14 +123,18 @@ def plot_corner_points(image,filtered_coords):
 
 if __name__ == '__main__':
     #Load Image    
-    image = plt.imread("images/squares.jpg")
+    image = plt.imread("images/Lines.jpg")
     hsvImage = color.rgb_to_hsv(image)
+    im = hsvImage[...,2]
     # Working on value channel
     # Detect corners using fast
-    corners = fastDetect(hsvImage[...,2],150)
+#    im = np.zeros((100,100))
+#    im[25:75,25:75] = 255
+    im1 = filters.gaussian_filter(im,1)
+    corners = fastDetect(im1,100)
     #Apply non-max suppression
-    corners = nonMaxSupp(corners)
+    scorners = nonMaxSupp(corners)
     #Plot corners
-    coords = np.array(np.nonzero(corners)).T
-    plot_corner_points(image, coords)
+    coords = np.array(np.nonzero(scorners)).T
+    plot_corner_points(im, coords)
   
