@@ -10,7 +10,7 @@ def otsuThreshold(image):
     pdf = H /(rows*cols)
     cdf = np.cumsum(pdf)
     othresh = 1
-    for t in range(1,256):
+    for t in range(1,255):
         bg = np.arange(0,t)
         obj = np.arange(t, 256)
         mBg    = sum(bg*pdf[0:t])/cdf[t]
@@ -30,7 +30,7 @@ def binarize( gray_image , threshold ):
     return 1 * ( gray_image > threshold )
 
 image = plt.imread('images/Pyramids1.jpg')
-myIm = image[...,2]
+myIm = image[...,1]
 plt.figure()
 plt.imshow(myIm)
 plt.set_cmap("gray")
