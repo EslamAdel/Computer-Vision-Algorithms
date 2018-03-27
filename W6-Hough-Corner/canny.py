@@ -19,7 +19,11 @@ def myCanny(image, tl, th):
             track remaining pixels with values in between tl and th. Suppress them
             if they haven't a strong edge in its neighbors.
     '''
-    # Implement Canny Here
+    '''
+    ==================================================================
+    Put Your Code Here 
+    ===================================================================
+    '''
     canny_image = image
     return canny_image
 
