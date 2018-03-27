@@ -58,6 +58,7 @@ if __name__ == '__main__':
     plt.imshow(cornerImage)
     #Plot corners
     plotCorners(image, cornerImage)
+    plt.show()
     
   
     
