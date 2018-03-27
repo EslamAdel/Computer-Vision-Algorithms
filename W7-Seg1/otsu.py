@@ -1,9 +1,31 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib import colors
 
 
 
-def otsuThreshold(image):
+def otsuThresholdB(image):
+    rows, cols =  image.shape
+    plt.figure()
+    H, binEdges, patches = plt.hist(image.ravel(),256)
+    pdf = H /(rows*cols)
+    cdf = np.cumsum(pdf)
+    othresh = 1
+    maxVarB = 0
+    for t in range(1,255):
+        bg = np.arange(0,t)
+        obj = np.arange(t, 256)
+        mBg    = sum(bg*pdf[0:t])/cdf[t]
+        mObj   = sum(obj*pdf[t:256])/(1-cdf[t])
+               
+        varB = cdf[t] * (1-cdf[t]) *(mObj - mBg)**2
+        if varB > maxVarB:
+            maxVarB= varB
+            othresh = t
+
+    return othresh
+
+def otsuThresholdW(image):
     rows, cols =  image.shape
     plt.figure()
     H, binEdges, patches = plt.hist(image.ravel(),256)
@@ -29,14 +51,16 @@ def otsuThreshold(image):
 def binarize( gray_image , threshold ):
     return 1 * ( gray_image > threshold )
 
-image = plt.imread('images/Pyramids1.jpg')
-myIm = image[...,1]
+image = plt.imread('images/MRIbrain3.jpg')
+hsvImage = colors.rgb_to_hsv(image)
+myIm = hsvImage[...,2] 
 plt.figure()
 plt.imshow(myIm)
 plt.set_cmap("gray")
-oT = otsuThreshold(myIm)
+oTw = otsuThresholdW(myIm)
+oTb = otsuThresholdB(myIm)
 #Binarize 
-myIm = binarize(myIm, oT)
+myIm = binarize(myIm, oTw)
 plt.figure()
 plt.imshow(myIm)
 plt.show()
