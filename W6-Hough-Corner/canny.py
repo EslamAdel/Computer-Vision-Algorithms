@@ -19,95 +19,27 @@ def myCanny(image, tl, th):
             track remaining pixels with values in between tl and th. Suppress them
             if they haven't a strong edge in its neighbors.
     '''
-    #1. Image smoothing 
-    sigma = 1.4
-    im1 = filters.gaussian_filter(image,(sigma, sigma))
-    
-    # 2. Getting gradient magnitude image 
-    sobelx = np.array([[-1, 0, 1],
-                       [-2, 0, 2],
-                       [-1, 0, 1]])
-    sobely = sobelx.T
-    
-    Gx = signal.convolve2d(im1, sobelx, "same")
-    Gy = signal.convolve2d(im1, sobely, "same")
-    
-    G = np.sqrt(Gx**2 + Gy**2)
-    
-    #3. None maxima suppression 
-    # Getting gradient direction at first
-    theta = np.arctan2(Gy,Gx)
-    # Digitalize value to be 0, 45, 90, 135
-    idxs = np.array(theta.nonzero()).T
-    for idx in idxs: 
-        if theta[idx[0], idx[1]] < 0:
-            theta[idx[0], idx[1]] += np.pi 
-    bins = np.array([0, np.pi/8, 3*np.pi/8 , 5*np.pi/8, 7*np.pi/8, np.pi])
-    dirs = np.digitize(theta, bins)%4
-    # Apply none-max suppression
-    edgeCoords = np.array(G.nonzero()).T
-    for c in edgeCoords:
-        gradDir = dirs[c[0], c[1]]
-        try:
-            if gradDir == 0:
-                idx = [[c[0]+1, c[1]],
-                       [c[0]-1,  c[1]],
-                       [c[0]+2, c[1]],
-                       [c[0]-2, c[1]]]
-            elif gradDir == 1:
-                idx = [[c[0]+1, c[1]+1],
-                       [c[0]-1,  c[1]-1],
-                       [c[0]+2, c[1]+2],
-                       [c[0]-2, c[1]-2]]
-            elif gradDir == 2:
-                idx = [[c[0], c[1]+1],
-                       [c[0],  c[1]-1],
-                       [c[0], c[1]+2],
-                       [c[0], c[1]-2]]
-            elif gradDir == 3 :
-                idx = [[c[0]+1, c[1]-1],
-                       [c[0]-1,  c[1]+1],
-                       [c[0]+2, c[1]-2],
-                       [c[0]-2, c[1]+2]]
-            for i in idx:
-                if G[i[0],i[1]] >= G[c[0],c[1]]:
-                    G[c[0],c[1]] = 0
-        except:
-            pass
-                
-    #4. Double Thresholding 
-    remainingEdges = np.array(G.nonzero()).T
-    for e in remainingEdges:
-        if G[e[0], e[1]] < tl:
-            G[e[0], e[1]] = 0
-        elif G[e[0], e[1]] > th:
-            G[e[0], e[1]] = 255
-    
-    #5. Edge tracking by hestrisis
-    remEdges = np.array(G.nonzero()).T
-    for re in remEdges:
-        if G[re[0],re[1]] != 255:
-            try:
-                neighbors = remEdges[re[0]-1:re[0]+2, re[1]-1:re[2]+2].flatten()
-            except:
-                neighbors = G[re[0], re[1]]
-            if np.max(neighbors) == 255:
-                G[re[0],re[1]] = 255
-    
-    return G
+    # Implement Canny Here
+    canny_image = image
+    return canny_image
 
 
 
 if __name__=='__main__':
-#    image = np.zeros((200,200))
-#    image[25:175,25:175] = 255
+    #Load Image
     image = plt.imread("images/Lines.jpg")
+    #Extract value channel (intensity)
     hsvImage = colors.rgb_to_hsv(image)
     valIm = hsvImage[...,2]
+    #Apply canny on the image
     cannyIm = myCanny(valIm, 50, 100)
-    plt.figure()
-    plt.imshow(cannyIm)
+    #Show Original Image
+    plt.figure("Original Image")
+    plt.imshow(valIm)
     plt.set_cmap("gray")
+    #Show Canny image
+    plt.figure("Canny Image")
+    plt.imshow(cannyIm)
     plt.show()
             
     
