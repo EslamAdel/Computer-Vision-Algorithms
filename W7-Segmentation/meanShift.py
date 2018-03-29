@@ -22,18 +22,21 @@ def getFeatureVector(image):
     return feature_vector
 
 def getInitialMean(feature_vector, not_visited_idxs):
-    idx = np.round(len(not_visited_idxs) * np.random.rand())
-    return feature_vector[:,not_visited_idxs[idx]]
+    idx = int(np.round(len(not_visited_idxs) * np.random.rand()))
+    return feature_vector[:,int(not_visited_idxs[idx])]
     
 
 def clusterImage(image, out_vector, clusters):
-    m, n = image.shape
+    m, n = image.shape[0:2]
     hsv_image = colors.rgb_to_hsv(image)
-    feature_vector = np.zeros(2, m*n)
-    for c in range(clusters.shape[1]):
-        s = np.where(out_vector == c)
-        feature_vector[:,s] = clusters[:,c]
-    hsv_image[:,0:2] = np.reshape(out_vector.T,(m,n,2))
+    feature_vector = np.zeros((2, m*n))
+    i = 1
+    for c in clusters:
+        s = np.where(out_vector == i)
+        for ii in s[0]:
+            feature_vector[:,ii] = c
+        i += 1
+    hsv_image[...,0:2] = np.reshape(feature_vector.T,(m,n,2))
     segmente_image = colors.hsv_to_rgb(hsv_image)
     return segmente_image
         
@@ -45,10 +48,10 @@ def meanShift(image, bandwidth):
     visited_points = np.zeros(num_points)
     threshold = 0.001*bandwidth
     clusters = []
-    num_clusters = 0
+    num_clusters = -1
     not_visited = num_points
     not_visited_Idxs = np.arange(num_points)
-    out_vector = np.zeros(num_points)
+    out_vector = -1*np.ones(num_points)
     while not_visited:
         new_mean = getInitialMean(feature_vector, not_visited_Idxs)
         this_cluster_points = np.zeros(num_points)
@@ -63,20 +66,20 @@ def meanShift(image, bandwidth):
             if np.sqrt(np.sum((new_mean - old_mean)**2)) < threshold:
                 merge_with = 0
                 for i in range(num_clusters):
-                    dist = np.sqrt(np.sum((new_mean- clusters[:,i])**2))
+                    dist = np.sqrt(np.sum((new_mean- clusters[i])**2))
                     if dist < 0.5 * bandwidth:
                         merge_with = 1
                         break
                 if merge_with != 0:
                     clusters[merge_with] = 0.5*(new_mean + clusters[merge_with])
-                    out_vector[this_cluster_points == 1] = merge_with
+                    out_vector[np.where(this_cluster_points == 1)] = merge_with
                 else:
-                    clusters.append(new_mean)
-                    out_vector[this_cluster_points == 1] = num_clusters
                     num_clusters += 1
+                    clusters.append(new_mean)
+                    out_vector[np.where(this_cluster_points == 1)] = num_clusters                    
                 break
-        not_visited_Idxs = np.where(visited_points == 0)
-        not_visited = len(not_visited_Idxs)
+        not_visited_Idxs = np.array(np.where(visited_points == 0)).T
+        not_visited = not_visited_Idxs.shape[0]
     segmented_image = clusterImage(image, out_vector, clusters)
     plt.figure("Segmented Image")
     plt.imshow(segmented_image)
