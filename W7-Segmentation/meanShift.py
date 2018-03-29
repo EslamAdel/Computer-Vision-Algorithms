@@ -17,6 +17,7 @@ def getFeatureVector(image):
     #Extract color channels only 
 #    color_space = hsv_image[...,0:2]
     #Reshape it in a feature vector with size 2 coordinate with n*m points (pixels)
+    #TOD Scatter 3D feature vector 
     feature_vector = np.reshape(image,(n*m, 3)).T
     plt.scatter(feature_vector[0], feature_vector[1])
     return feature_vector
