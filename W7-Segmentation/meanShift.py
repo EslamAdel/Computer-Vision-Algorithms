@@ -63,20 +63,20 @@ def meanShift(image, bandwidth):
         while True:
             dist_to_all = np.sqrt(np.sum((feature_vector.T-new_mean)**2,1)).T
             in_range_points_idxs = np.where(dist_to_all < bandwidth)
-            visited_points[in_range_points_idxs] = 1
-            this_cluster_points[in_range_points_idxs] = 1
+            visited_points[in_range_points_idxs[0]] = 1
+            this_cluster_points[in_range_points_idxs[0]] = 1
             old_mean = new_mean
             new_mean = np.sum(feature_vector[:,in_range_points_idxs[0]],1)/in_range_points_idxs[0].shape[0]
-            
+            if np.isnan(new_mean[0]) or np.isnan(new_mean[1]):
+                continue
             if np.sqrt(np.sum((new_mean - old_mean)**2)) < threshold:
-                merge_with = 0
-                for i in range(num_clusters):
+                merge_with = -1
+                for i in range(num_clusters+1):
                     dist = np.sqrt(np.sum((new_mean- clusters[i])**2))
                     if dist < 0.5 * bandwidth:
-                        merge_with = 1
+                        merge_with = i
                         break
-                if merge_with != 0:
-                    pass
+                if merge_with >= 0:
                     clusters[merge_with] = 0.5*(new_mean + clusters[merge_with])
                     out_vector[np.where(this_cluster_points == 1)] = merge_with
                 else:
@@ -95,7 +95,7 @@ def meanShift(image, bandwidth):
     
 if __name__ == '__main__':
     image = plt.imread('images/seg3.png')
-    num_clusters = meanShift(image, 0.3) + 1
+    num_clusters = meanShift(image, 0.2) + 1
 
     
     
