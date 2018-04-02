@@ -54,14 +54,14 @@ def kmeans(image, k, num_iterations=10):
     # Return to image space 
     hs_space = np.reshape(feature_space.T, (m, n,2))
     hsv_image[...,0:2] = hs_space
-    hsv_image[...,2] /= 255
+    hsv_image[...,2] /= np.max(hsv_image[...,2])
     segmented_image = colors.hsv_to_rgb(hsv_image)
     return segmented_image
         
 
 
 if __name__=='__main__':
-    image = plt.imread('images/seg3.png')
+    image = plt.imread('images/seg2.jpg')
     image = misc.imresize(image, (150,150))
     plt.figure('Original Image')
     plt.imshow(image)

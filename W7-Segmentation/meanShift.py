@@ -41,7 +41,8 @@ def clusterImage(image, out_vector, clusters):
         for ii in s[0]:
             feature_vector[:,ii] = c
         i += 1
-    hsv_image[...,0:2] = np.reshape(feature_vector.T,(m,n,2)) 
+    hsv_image[...,0:2] = np.reshape(feature_vector.T,(m,n,2))
+    hsv_image[..., 2] /= np.max(hsv_image[...,2])
     segmented_image = colors.hsv_to_rgb(hsv_image)
     return segmented_image
         
@@ -94,8 +95,8 @@ def meanShift(image, bandwidth):
     
     
 if __name__ == '__main__':
-    image = plt.imread('images/seg3.png')
-    num_clusters = meanShift(image, 0.2) + 1
+    image = plt.imread('images/seg2.jpg')
+    num_clusters = meanShift(image, 0.1) + 1
 
     
     
