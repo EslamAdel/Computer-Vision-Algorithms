@@ -13,12 +13,12 @@ def getFeatureVector(image):
     #Get image dimentions
     m, n = image.shape[0:2]
     #Move to hsv space
-#    hsv_image = colors.rgb_to_hsv(image)
+    hsv_image = colors.rgb_to_hsv(image)
     #Extract color channels only 
-#    color_space = hsv_image[...,0:2]
+    color_space = hsv_image[...,0:2]
     #Reshape it in a feature vector with size 2 coordinate with n*m points (pixels)
     #TOD Scatter 3D feature vector 
-    feature_vector = np.reshape(image,(n*m, 3)).T
+    feature_vector = np.reshape(color_space,(n*m, 2)).T
     plt.scatter(feature_vector[0], feature_vector[1])
     return feature_vector
 
@@ -31,8 +31,8 @@ def getInitialMean(feature_vector, not_visited_idxs):
 
 def clusterImage(image, out_vector, clusters):
     m, n = image.shape[0:2]
-#    hsv_image = colors.rgb_to_hsv(image)
-    feature_vector = np.zeros((3, m*n))
+    hsv_image = colors.rgb_to_hsv(image)
+    feature_vector = np.zeros((2, m*n))
     i = 0
     for c in clusters:
         s = np.where(out_vector == i)
@@ -41,9 +41,9 @@ def clusterImage(image, out_vector, clusters):
         for ii in s[0]:
             feature_vector[:,ii] = c
         i += 1
-    segmente_image = np.reshape(feature_vector.T,(m,n,3))
-#    segmente_image = colors.hsv_to_rgb(hsv_image)
-    return segmente_image
+    hsv_image[...,0:2] = np.reshape(feature_vector.T,(m,n,2)) 
+    segmented_image = colors.hsv_to_rgb(hsv_image)
+    return segmented_image
         
     
 
@@ -51,7 +51,7 @@ def meanShift(image, bandwidth):
     feature_vector = getFeatureVector(image)
     num_points = feature_vector.shape[1]
     visited_points = np.zeros(num_points)
-    threshold = 0.005*bandwidth
+    threshold = 0.05*bandwidth
     clusters = []
     num_clusters = -1
     not_visited = num_points
@@ -77,8 +77,8 @@ def meanShift(image, bandwidth):
                         break
                 if merge_with != 0:
                     pass
-#                    clusters[merge_with] = 0.5*(new_mean + clusters[merge_with])
-#                    out_vector[np.where(this_cluster_points == 1)] = merge_with
+                    clusters[merge_with] = 0.5*(new_mean + clusters[merge_with])
+                    out_vector[np.where(this_cluster_points == 1)] = merge_with
                 else:
                     num_clusters += 1
                     clusters.append(new_mean)
@@ -95,8 +95,7 @@ def meanShift(image, bandwidth):
     
 if __name__ == '__main__':
     image = plt.imread('images/seg3.png')
-    image *= 255
-    num_clusters = meanShift(image, 50) + 1
+    num_clusters = meanShift(image, 0.6) + 1
 
     
     
