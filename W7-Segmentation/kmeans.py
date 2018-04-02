@@ -62,10 +62,10 @@ def kmeans(image, k, num_iterations=10):
 
 if __name__=='__main__':
     image = plt.imread('images/seg3.png')
-    image = misc.imresize(image, (100,100))
+    image = misc.imresize(image, (150,150))
     plt.figure('Original Image')
     plt.imshow(image)
-    segmented_image = kmeans(image, 6,20)
+    segmented_image = kmeans(image, 6,10)
     plt.figure('segmented image')
     plt.imshow(segmented_image)
 

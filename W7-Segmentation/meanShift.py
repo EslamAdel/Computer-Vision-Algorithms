@@ -95,7 +95,7 @@ def meanShift(image, bandwidth):
     
 if __name__ == '__main__':
     image = plt.imread('images/seg3.png')
-    num_clusters = meanShift(image, 0.6) + 1
+    num_clusters = meanShift(image, 0.3) + 1
 
     
     
