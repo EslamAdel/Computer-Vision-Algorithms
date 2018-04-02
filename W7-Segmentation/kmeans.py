@@ -80,7 +80,7 @@ if __name__=='__main__':
     plt.figure('Original Image')
     plt.imshow(image)
     #Apply k means segmentation and show the result
-    segmented_image = kmeans(image, 5,2)
+    segmented_image = kmeans(image, 5,5)
     plt.figure('segmented image')
     plt.imshow(segmented_image)
 
