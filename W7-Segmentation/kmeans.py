@@ -3,7 +3,18 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from scipy import  misc
 
-def kmeans(image, k, num_iterations=10):
+def kmeans(image, k, num_iterations):
+    '''
+    K means clustering segmentation algorithm 
+    Basic steps are
+    1. Set number of cluster ans number of iterations 
+    2. Extract feature space (color features) from the image
+    3. Get initial centers for all clusters
+    4. Cluster your data points to that clusters according to distance from it
+    5. Get the new mean for all clusters 
+    6. Repeat 4 and 5 for specified number of iterations
+    7. Return to image space
+    '''
     #1. Construnct feature space
     m, n = image.shape[0:2]
     num_points = m*n
@@ -61,11 +72,15 @@ def kmeans(image, k, num_iterations=10):
 
 
 if __name__=='__main__':
+    #Load the image
     image = plt.imread('images/seg2.jpg')
+    # Rescale image down for speedup    
     image = misc.imresize(image, (150,150))
+    #Show original Image
     plt.figure('Original Image')
     plt.imshow(image)
-    segmented_image = kmeans(image, 6,10)
+    #Apply k means segmentation and show the result
+    segmented_image = kmeans(image, 5,2)
     plt.figure('segmented image')
     plt.imshow(segmented_image)
 
