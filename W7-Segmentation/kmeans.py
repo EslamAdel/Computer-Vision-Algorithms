@@ -42,6 +42,9 @@ def kmeans(image, k, num_iterations=10):
             points = feature_space[:,idxs[0]]
             # Get its new center
             clusters_centers[:,c] = np.mean(points, 1)
+            if np.isnan(clusters_centers[1,c]) or  np.isnan(clusters_centers[1,c]):
+                idx =  np.round(num_points * np.random.rand())
+                clusters_centers[:,c] = feature_space[:,int(idx)]
     
     # Now assign color to pixels according to its cluster
     for c in range(k):
@@ -58,11 +61,11 @@ def kmeans(image, k, num_iterations=10):
 
 
 if __name__=='__main__':
-    image = plt.imread('images/seg2.jpg')
-    image = misc.imresize(image, (50,50))
+    image = plt.imread('images/seg3.png')
+    image = misc.imresize(image, (100,100))
     plt.figure('Original Image')
     plt.imshow(image)
-    segmented_image = kmeans(image, 4,30)
+    segmented_image = kmeans(image, 6,20)
     plt.figure('segmented image')
     plt.imshow(segmented_image)
 
