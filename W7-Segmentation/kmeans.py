@@ -131,36 +131,4 @@ if __name__=='__main__':
     plt.figure('segmented image')
     plt.set_cmap('gray')
     plt.imshow(segmented_image)
-
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-
-
+    plt.show()
