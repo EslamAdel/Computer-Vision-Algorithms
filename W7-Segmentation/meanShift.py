@@ -2,26 +2,27 @@ import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib import colors
 
-def getFeatureVector(image):
+def getFeatureVector(image, d):
     '''
-    Extract feature vector which is the color space of the image. In RGB color 
-    space we have three channels that holds color information, feature space will 
-    be 3D space. For hsv color space only two channels holds color informations. 
-    Now we can segment based on colors using only 2D feature vector. 
+    Extract feature space according to type of feature 
+    inputs:
+        image : the image itself
+        feature : intensity(1D), color(HS) (2D) or color(RGB)(3D)
+    outputs:
+        feature vector.
     '''
-    #Get image dimentions
     m, n = image.shape[0:2]
-    #Move to hsv space
     hsv_image = colors.rgb_to_hsv(image)
-    #Extract color channels only 
-    color_space = hsv_image[...,0:2]
-    #Reshape it in a feature vector with size 2 coordinate with n*m points (pixels)
-    #TOD Scatter 3D feature vector 
-    feature_vector = np.reshape(color_space,(n*m, 2)).T
-    #Let's see the feature space
-    plt.figure('Feature Space')
-    plt.scatter(feature_vector[0], feature_vector[1])
-    #Return that space
+    num_points = m*n
+    if d == 1:
+        im_space = hsv_image[...,2]
+    elif d == 2:
+        im_space = hsv_image[...,0:2]
+    elif d == 3:
+        im_space = image
+    else: 
+        exit('Not supported feature')
+    feature_vector = np.reshape(im_space, (num_points,d)).T
     return feature_vector
 
 def getInitialMean(feature_vector, not_visited_idxs):
@@ -41,42 +42,43 @@ def getInitialMean(feature_vector, not_visited_idxs):
     return feature_vector[:,int(not_visited_idxs[idx])]
     
 
-def clusterImage(image, out_vector, clusters):
+def clusterImage(image, clustering_out, clusters):
     '''
-    Assign color to each image pixel according to its cluster center
-    inputs : 
-    image -> original image
-    out_vector -> a vector containing the cluster of each point in color space
-    cluster -> containing the color of each cluster
+    Extract results of clustering by assigning the cluster center to all its 
+    points and returning back to image space
+    inputs:
+        clustering_out: a 1D lookup table for each pixel cluster pair (1xnum_points)
+        clusters: a lookup table for cluster feature pair (kxd) where 
+        k is number of clusters and d is feature dimension 
+    output: 
+        segmented Image (in image domain)
     '''
-    #Get image dimensions
     m, n = image.shape[0:2]
-    # Move to hsv color space
-    hsv_image = colors.rgb_to_hsv(image)
-    #Initialize feature vector
-    feature_vector = np.zeros((2, m*n))
-    #Iterator variable
-    i = 0
-    for c in clusters:
-        #Extract the pixels belongs to that cluster
-        s = np.where(out_vector == i)
-        #Assign the color of this cluster to all pixels
-        for ii in s[0]:
-            feature_vector[:,ii] = c
-        #Next cluster
-        i += 1
-    #Now lets return back to image space from feature space
-    hsv_image[...,0:2] = np.reshape(feature_vector.T,(m,n,2))
-    #Normalize intensity channel (It is noticed that it must be in range 0 to 1)
-    hsv_image[..., 2] /= np.max(hsv_image[...,2])
-    #Return to RGB color space
-    segmented_image = colors.hsv_to_rgb(hsv_image)
-    #Retrurn segmented image
+    clusters = np.asarray(clusters).T
+    d, k = clusters.shape[0:2]
+    clusterd_feature_space = np.zeros((len(clustering_out),clusters.shape[0])).T
+     # Now assign values to pixels according to its cluster
+    for c in range(k):
+        idxs = np.where(clustering_out == c)
+        for j in idxs[0]:
+            clusterd_feature_space[:,j] = clusters[:,c]
+    # Return to image space     
+    im_space  = np.reshape(clusterd_feature_space.T, (m, n,d))
+    if d == 1:
+        im_space = im_space[...,0]
+        segmented_image = im_space
+    elif d == 2:
+         hsv_image = colors.rgb_to_hsv(image)
+         hsv_image[...,0:2] = im_space
+         hsv_image[..., 2] /= np.max(hsv_image[...,2])
+         segmented_image = colors.hsv_to_rgb(hsv_image)
+    else:
+        segmented_image = im_space
     return segmented_image
         
     
 
-def meanShift(image, bandwidth):
+def meanShift(image, bandwidth, d):
     '''
     The mean shift algorithm for uniform kernel
     Basic algorithm steps are : 
@@ -96,7 +98,7 @@ def meanShift(image, bandwidth):
     output : segmented image and number of clusters
     '''
     #Get the feature vector from the image
-    feature_vector = getFeatureVector(image)
+    feature_vector = getFeatureVector(image, d)
     #Get number of points in feature space
     num_points = feature_vector.shape[1]
     # A binary vector contains zero for unvisited point and one for visited 
@@ -136,7 +138,7 @@ def meanShift(image, bandwidth):
             new_mean = np.sum(feature_vector[:,in_range_points_idxs[0]],
                               1)/in_range_points_idxs[0].shape[0]
             #Checking if no points so mean will be nan (not a number) and break 
-            if np.isnan(new_mean[0]) or np.isnan(new_mean[1]):
+            if np.isnan(new_mean[0]):
                 break
             # Checking covergence
             if np.sqrt(np.sum((new_mean - old_mean)**2)) < threshold:
@@ -182,7 +184,8 @@ if __name__ == '__main__':
     plt.figure('Original Image')
     plt.imshow(image)
     #Apply mean shift segmentation
-    segmented_image, num_clusters = meanShift(image, 0.3)
+    bw = 0.15*np.max(image)
+    segmented_image, num_clusters = meanShift(image, bw , 1)
     #Show segmented image
     plt.figure("Segmented Image")
     plt.imshow(segmented_image)
