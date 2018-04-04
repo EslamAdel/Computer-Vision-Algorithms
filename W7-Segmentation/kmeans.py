@@ -3,7 +3,65 @@ import matplotlib.pyplot as plt
 from matplotlib import colors
 from scipy import  misc
 
-def kmeans(image, k, num_iterations):
+def extract_feature_space(image, d):
+    '''
+    Extract feature space according to type of feature 
+    inputs:
+        image : the image itself
+        feature : intensity(1D), color(HS) (2D) or color(RGB)(3D)
+    outputs:
+        feature vector.
+    '''
+    m, n = image.shape[0:2]
+    hsv_image = colors.rgb_to_hsv(image)
+    num_points = m*n
+    if d == 1:
+        im_space = hsv_image[...,2]
+    elif d == 2:
+        im_space = hsv_image[...,0:2]
+    elif d == 3:
+        im_space = image
+    else: 
+        exit('Not supported feature')
+    feature_vector = np.reshape(im_space, (num_points,d)).T
+    return feature_vector
+
+
+def extract_segmented_image(clustering_out, clusters, image):
+    '''
+    Extract results of clustering by assigning the cluster center to all its 
+    points and returning back to image space
+    inputs:
+        clustering_out: a 1D lookup table for each pixel cluster pair (1xnum_points)
+        clusters: a lookup table for cluster feature pair (kxd) where 
+        k is number of clusters and d is feature dimension 
+    output: 
+        segmented Image (in image domain)
+    '''
+    m, n = image.shape[0:2]
+    d, k = clusters.shape[0:2]
+    clusterd_feature_space = np.zeros((len(clustering_out),clusters.shape[0])).T
+     # Now assign values to pixels according to its cluster
+    for c in range(k):
+        idxs = np.where(clustering_out == c)
+        for j in idxs[0]:
+            clusterd_feature_space[:,j] = clusters[:,c]
+    # Return to image space     
+    im_space  = np.reshape(clusterd_feature_space.T, (m, n,d))
+    if d == 1:
+        im_space = im_space[...,0]
+        segmented_image = im_space
+    elif d == 2:
+         hsv_image = colors.rgb_to_hsv(image)
+         hsv_image[...,0:2] = im_space
+         hsv_image[..., 2] /= np.max(hsv_image[...,2])
+         segmented_image = colors.hsv_to_rgb(hsv_image)
+    else:
+        segmented_image = im_space
+    return segmented_image
+    
+
+def kmeans(image, k, num_iterations, d):
     '''
     K means clustering segmentation algorithm 
     Basic steps are
@@ -18,18 +76,14 @@ def kmeans(image, k, num_iterations):
     #1. Construnct feature space
     m, n = image.shape[0:2]
     num_points = m*n
-    hsv_image = colors.rgb_to_hsv(image)
     #We will select H and S channels (color information)
     # We have 2D feature space
-    feature_space = np.reshape(hsv_image[...,0:2],(num_points, 2)).T
-    # Lets visualize that space 
-    plt.figure('feature space')
-    plt.scatter(feature_space[0], feature_space[1])
+    feature_space = extract_feature_space(image, d)
     # 2. Getting Initial centers 
     idxs = np.round(num_points * np.random.rand(k))
     #Boundary condition
     idxs[np.where(idxs >= m*n)] -= 1 
-    initial_centers = np.zeros((2,k))
+    initial_centers = np.zeros((d,k))
     for i in range(k):
         initial_centers[:,i] = feature_space[:,int(idxs[i])]
     clusters_centers = initial_centers
@@ -53,35 +107,29 @@ def kmeans(image, k, num_iterations):
             points = feature_space[:,idxs[0]]
             # Get its new center
             clusters_centers[:,c] = np.mean(points, 1)
-            if np.isnan(clusters_centers[1,c]) or  np.isnan(clusters_centers[1,c]):
-                idx =  np.round(num_points * np.random.rand())
-                clusters_centers[:,c] = feature_space[:,int(idx)]
-    
-    # Now assign color to pixels according to its cluster
-    for c in range(k):
-        idxs = np.where(cluster_points == c)
-        for ii in idxs[0]:
-            feature_space[:,ii] = clusters_centers[:,c]
-    # Return to image space 
-    hs_space = np.reshape(feature_space.T, (m, n,2))
-    hsv_image[...,0:2] = hs_space
-    hsv_image[...,2] /= np.max(hsv_image[...,2])
-    segmented_image = colors.hsv_to_rgb(hsv_image)
-    return segmented_image
+            for i in range(d):
+                if np.isnan(clusters_centers[i,c]):
+                    idx =  np.round(num_points * np.random.rand())
+                    clusters_centers[:,c] = feature_space[:,int(idx)]
+                    break
+
+        segmented_image = extract_segmented_image(cluster_points, clusters_centers, image)
+        return segmented_image
         
 
 
 if __name__=='__main__':
     #Load the image
-    image = plt.imread('images/seg2.jpg')
+    image = plt.imread('images/seg3.png')
     # Rescale image down for speedup    
     image = misc.imresize(image, (150,150))
     #Show original Image
     plt.figure('Original Image')
     plt.imshow(image)
     #Apply k means segmentation and show the result
-    segmented_image = kmeans(image, 5,5)
+    segmented_image = kmeans(image, 5,1000, 1)
     plt.figure('segmented image')
+    plt.set_cmap('gray')
     plt.imshow(segmented_image)
 
     
