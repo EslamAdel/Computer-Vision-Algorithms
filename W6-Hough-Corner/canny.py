@@ -37,40 +37,54 @@ def myCanny(image, tl, th):
     #3. None maxima suppression 
     # Getting gradient direction at first
     theta = np.arctan2(Gy,Gx)
+    theta = 180 + (180/np.pi)*theta
+    x0,y0 = np.where(((theta<22.5)+(theta>157.5)*(theta<202.5)
+                       +(theta>337.5)) == True)
+    x45,y45 = np.where( ((theta>22.5)*(theta<67.5)
+                      +(theta>202.5)*(theta<247.5)) == True)
+    x90,y90 = np.where( ((theta>67.5)*(theta<112.5)
+                      +(theta>247.5)*(theta<292.5)) == True)
+    x135,y135 = np.where( ((theta>112.5)*(theta<157.5)
+                        +(theta>292.5)*(theta<337.5)) == True)
     # Digitalize value to be 0, 45, 90, 135
-    idxs = np.array(theta.nonzero()).T
-    for idx in idxs: 
-        if theta[idx[0], idx[1]] < 0:
-            theta[idx[0], idx[1]] += np.pi 
-    bins = np.array([0, np.pi/8, 3*np.pi/8 , 5*np.pi/8, 7*np.pi/8, np.pi])
-    dirs = np.digitize(theta, bins)%4
+#    idxs = np.array(theta.nonzero()).T
+#    for idx in idxs: 
+#        if theta[idx[0], idx[1]] < 0:
+#            theta[idx[0], idx[1]] += np.pi 
+#    bins = np.array([0, np.pi/8, 3*np.pi/8 , 5*np.pi/8, 7*np.pi/8, np.pi])
+#    dirs = np.digitize(theta, bins)%4
     # Apply none-max suppression
+    theta[x0,y0] = 0
+    theta[x45,y45] = 1
+    theta[x90,y90] = 2
+    theta[x135,y135] = 3
+    dirs = theta
     edgeCoords = np.array(G.nonzero()).T
     for c in edgeCoords:
         gradDir = dirs[c[0], c[1]]
         try:
             if gradDir == 0:
-                idx = [[c[0]+1, c[1]],
-                       [c[0]-1,  c[1]],
-                       [c[0]+2, c[1]],
-                       [c[0]-2, c[1]]]
+                idx = [[c[0], c[1]+1],
+                       [c[0],  c[1]-1],
+                       [c[0], c[1]+2],
+                       [c[0], c[1]-2]]
             elif gradDir == 1:
                 idx = [[c[0]+1, c[1]+1],
                        [c[0]-1,  c[1]-1],
                        [c[0]+2, c[1]+2],
                        [c[0]-2, c[1]-2]]
             elif gradDir == 2:
-                idx = [[c[0], c[1]+1],
-                       [c[0],  c[1]-1],
-                       [c[0], c[1]+2],
-                       [c[0], c[1]-2]]
+                idx = [[c[0]+1, c[1]],
+                       [c[0]-1,  c[1]],
+                       [c[0]+2, c[1]],
+                       [c[0]-2, c[1]]]
             elif gradDir == 3 :
                 idx = [[c[0]+1, c[1]-1],
                        [c[0]-1,  c[1]+1],
                        [c[0]+2, c[1]-2],
                        [c[0]-2, c[1]+2]]
             for i in idx:
-                if G[i[0],i[1]] >= G[c[0],c[1]]:
+                if G[i[0],i[1]] > G[c[0],c[1]]:
                     G[c[0],c[1]] = 0
         except:
             pass
@@ -88,12 +102,14 @@ def myCanny(image, tl, th):
     for re in remEdges:
         if G[re[0],re[1]] != 255:
             try:
-                neighbors = remEdges[re[0]-1:re[0]+2, re[1]-1:re[2]+2].flatten()
+                neighbors = G[re[0]-1:re[0]+2, re[1]-1:re[1]+2].flatten()
+                if np.max(neighbors) == 255:
+                   G[re[0],re[1]] = 255
+                else:
+                   G[re[0],re[1]] = 0 
             except:
-                neighbors = G[re[0], re[1]]
-            if np.max(neighbors) == 255:
-                G[re[0],re[1]] = 255
-    
+                G[re[0],re[1]] = 0
+                continue    
     return G
 
 
@@ -104,7 +120,7 @@ if __name__=='__main__':
     image = plt.imread("images/Lines.jpg")
     hsvImage = colors.rgb_to_hsv(image)
     valIm = hsvImage[...,2]
-    cannyIm = myCanny(valIm, 50, 100)
+    cannyIm = myCanny(valIm, 75, 150)
     plt.figure()
     plt.imshow(cannyIm)
     plt.set_cmap("gray")
