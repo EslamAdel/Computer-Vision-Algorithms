@@ -185,7 +185,7 @@ if __name__ == '__main__':
     plt.imshow(image)
     #Apply mean shift segmentation
     bw = 0.1*np.max(image)
-    segmented_image, num_clusters = meanShift(image, bw , 1)
+    segmented_image, num_clusters = meanShift(image, bw , 3)
     #Show segmented image
     plt.figure("Segmented Image")
     plt.imshow(segmented_image)

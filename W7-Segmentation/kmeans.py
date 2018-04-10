@@ -106,13 +106,12 @@ def kmeans(image, k, num_iterations, d):
             idxs = np.where(cluster_points == c)
             points = feature_space[:,idxs[0]]
             # Get its new center
-            clusters_centers[:,c] = np.mean(points, 1)
-            for i in range(d):
-                if np.isnan(clusters_centers[i,c]):
-                    idx =  np.round(num_points * np.random.rand())
-                    clusters_centers[:,c] = feature_space[:,int(idx)]
-                    break
-
+            # Avoid division by zero
+            if points.size > 0:
+                clusters_centers[:,c] = np.mean(points, 1)
+            else:
+                idx =  np.round(num_points * np.random.rand())
+                clusters_centers[:,c] = feature_space[:,int(idx)]
         segmented_image = extract_segmented_image(cluster_points, clusters_centers, image)
         return segmented_image
         
@@ -127,7 +126,7 @@ if __name__=='__main__':
     plt.figure('Original Image')
     plt.imshow(image)
     #Apply k means segmentation and show the result
-    segmented_image = kmeans(image, 5,1000, 1)
+    segmented_image = kmeans(image, 5,1000, 2)
     plt.figure('segmented image')
     plt.set_cmap('gray')
     plt.imshow(segmented_image)
