@@ -5,7 +5,7 @@ from matplotlib import colors
 
 def onClick(event):
     x, y = int(event.xdata), int(event.ydata)
-    outIm = regionGrowing(valChannel,np.array([y,x]),10)
+    outIm = regionGrowing(valChannel,np.array([y,x]),5)
     segmentedImage = np.copy(myImage)
     segmentedImage[...,0] *= outIm.astype('uint8')
     segmentedImage[...,1] *= outIm.astype('uint8')
@@ -41,7 +41,7 @@ def regionGrowing(image, seed, threshold):
 
 if __name__ == '__main__':
     global myImage
-    myImage = plt.imread('images/seg1.jpg')
+    myImage = plt.imread('images/MRIbrain3.jpg')
     hsvImage = colors.rgb_to_hsv(myImage)
     global valChannel 
     valChannel = hsvImage[...,2]
