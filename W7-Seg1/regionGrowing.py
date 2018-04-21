@@ -47,11 +47,13 @@ def regionGrowing(image, seed, threshold):
                 # Check that if its already added to region or not 
                 if not outImage[neighbors[i,0],neighbors[i,1]]:
                     # Checking similarity based on intensity value
-                    if np.abs(image[neighbors[i,0],neighbors[i,1]] - image[p[0],p[1]]) <= threshold:
+                    if np.abs(image[neighbors[i,0],neighbors[i,1]] - 
+                              image[p[0],p[1]]) <= threshold:
                         # Add point to region
                         outImage[neighbors[i,0],neighbors[i,1]] = 1
                         # Push it to the stack
-                        points.append(np.array([neighbors[i,0],neighbors[i,1]]))
+                        points.append(np.array([neighbors[i,0],
+                                                neighbors[i,1]]))
         except:
             continue
         
