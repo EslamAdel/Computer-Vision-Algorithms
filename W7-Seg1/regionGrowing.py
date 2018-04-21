@@ -63,5 +63,6 @@ if __name__ == '__main__':
     plt.set_cmap('gray')
     fig.canvas.mpl_connect('button_press_event', onClick)
     fig.canvas.mpl_connect('close_event', onClose)
+    plt.show()
     
     
