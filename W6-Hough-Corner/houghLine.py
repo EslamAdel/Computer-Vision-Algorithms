@@ -2,6 +2,8 @@ import numpy as np
 import matplotlib.pyplot as plt
 from skimage import feature
 import matplotlib.colors as color
+from scipy import misc
+from scipy import signal
 
 
 def houghLine(image):
@@ -120,32 +122,68 @@ def plotLines(image, lines):
     
 if __name__ == '__main__':
     # Load the image
-    image = plt.imread('images/Lines.jpg')
+    image = plt.imread('images/BW.jpg')
+    s = 1000
+
+    image = misc.imresize(image,(s,s))
+    line = np.zeros_like(image)
+    line[s/2,:,:] = 1
+    line[:,s/2,:] = 1
+    
+    image = image * (1-line)
+    image[...,0] = image[...,0]*(1-np.identity(s))
+    image[...,1] = image[...,1]*(1-np.identity(s))
+    image[...,2] = image[...,2]*(1-np.identity(s))
     hsvImage = color.rgb_to_hsv(image)
-    ValImage = hsvImage[..., 2]
-    #image = misc.imresize(image,(300,400))
-    # Edge detection (canny)
-    edgeImage = feature.canny( ValImage,sigma=1.4, low_threshold=40, high_threshold=150)    
-    # Show original image
+    HImage = hsvImage[..., 0]
+    SImage = hsvImage[..., 1]   
+    VImage = hsvImage[..., 2]
+#    
+#    # Edge detection (canny)
+#    #edgeImage = feature.canny( ValImage,sigma=1.4, low_threshold=40, high_threshold=150)    
+#    # Show original image
     plt.figure('Original Image')
     plt.imshow(image)
     plt.set_cmap('gray')
+#    plt.figure('Distorted Image')
+#    plt.imshow(ValImage)
+#
+    x = np.array([5,1]);    
+    outImageH = signal.medfilt(HImage,x)
+    outImageS = signal.medfilt(SImage,x)
+    outImageV = signal.medfilt(VImage,x)
+    
+    x = np.array([1,5]);    
+    outImageH = signal.medfilt(outImageH,x)
+    outImageS = signal.medfilt(outImageS,x)
+    outImageV = signal.medfilt(outImageV,x)
+
+    finalImage = np.zeros_like(hsvImage)
+    finalImage[..., 0] = outImageH
+    finalImage[..., 1] = outImageS
+    finalImage[..., 2] = outImageV
+    ffinalImage = np.uint8(color.hsv_to_rgb(finalImage))
+    plt.figure('Out Image')
+    plt.imshow(ffinalImage)
+    plt.set_cmap('gray')
+
+
     
     # Show edge image
-    plt.figure('Edge Image')
-    plt.imshow(edgeImage)
-    plt.set_cmap('gray')
-    
+#    plt.figure('Edge Image')
+#    plt.imshow(edgeImage)
+#    plt.set_cmap('gray')
+#    
     # build accumulator    
-    accumulator, thetas, rhos = houghLine(edgeImage)
-   
-    # Visualize hough space
-    plt.figure('Hough Space')
-    plt.imshow(accumulator)
-    plt.set_cmap('gray')
-    
-    # Detect and superimpose lines on original image
-    detectLines(image, accumulator, 0.27, rhos, thetas)
+    #accumulator, thetas, rhos = houghLine(edgeImage)
+#   
+#    # Visualize hough space
+#    plt.figure('Hough Space')
+#    plt.imshow(accumulator)
+#    plt.set_cmap('gray')
+#    
+#    # Detect and superimpose lines on original image
+#    detectLines(image, accumulator, 0.27, rhos, thetas)
     plt.show()
     
     
